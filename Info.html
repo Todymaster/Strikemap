@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>STRIKEMAP — Intel & Spend</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--hud:#00ff88;--hud2:#00ccff;--warn:#ff4422;--amb:#ffaa00;--dark:#060a0f;--pan:#0a1018;--p2:#0e1620;--p3:#111c28;--bdr:rgba(0,255,136,0.16);--b2:rgba(0,204,255,0.14);--tx:#c8dde8;--dim:#4a6272}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--dark);color:var(--tx);font-family:'Barlow Condensed',sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column}
+#topbar{height:46px;background:var(--pan);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 20px;gap:14px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--hud);letter-spacing:3px}
+.logo span{color:var(--warn)}
+.nav-link{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:2px;text-decoration:none;padding:4px 10px;border:.5px solid rgba(0,255,136,0.1);border-radius:2px;transition:all .15s}
+.nav-link:hover,.nav-link.active{color:var(--hud);border-color:var(--bdr);background:rgba(0,255,136,0.06)}
+#clock{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--hud2);letter-spacing:2px;margin-left:auto}
+#page{flex:1;max-width:1340px;margin:0 auto;width:100%;padding:20px 18px}
+/* TABS */
+.tab-row{display:flex;border-bottom:1px solid var(--bdr);margin-bottom:22px;overflow-x:auto}
+.tb{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;padding:9px 20px;background:transparent;border:none;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tb:hover{color:var(--hud2)}.tb.active{color:var(--hud);border-bottom-color:var(--hud)}
+.tp{display:none}.tp.active{display:block}
+/* SECTION HEADERS */
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.sd{width:6px;height:6px;border-radius:50%;background:var(--hud);box-shadow:0 0 6px var(--hud)}
+.sd.w{background:var(--warn);box-shadow:0 0 6px var(--warn)}.sd.a{background:var(--amb);box-shadow:0 0 6px var(--amb)}
+.st{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:3px;color:var(--hud)}
+.st.w{color:var(--warn)}.st.a{color:var(--amb)}
+/* COMPARE */
+.cmp{display:grid;grid-template-columns:1fr 200px 1fr;gap:16px;margin-bottom:30px}
+.ccard{background:var(--p2);border:1px solid var(--b2);border-radius:3px;padding:16px}
+.cmid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.vs{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--warn);letter-spacing:4px}
+select.csel{width:100%;background:var(--p2);border:.5px solid var(--bdr);border-radius:2px;padding:7px 9px;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--tx);cursor:pointer;margin-bottom:12px}
+.imgbox{width:100%;height:130px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(0,20,40,.8),rgba(0,40,20,.3));border:.5px solid var(--bdr);border-radius:2px;margin-bottom:12px;overflow:hidden}
+.imgbox img{max-width:90%;max-height:110px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,204,255,.3))}
+.cname{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--hud2);letter-spacing:1.5px;margin-bottom:2px}
+.csub{font-size:10px;color:var(--dim);margin-bottom:10px}
+.sr{display:flex;justify-content:space-between;padding:4px 0;border-bottom:.5px solid rgba(255,255,255,.05);font-size:11px}
+.sr:last-child{border-bottom:none}
+.sk{color:var(--dim)}.sv{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--tx)}
+.sv.g{color:var(--hud)}.sv.r{color:var(--warn)}.sv.a{color:var(--amb)}
+.radwrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.radlbl{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:1.5px}
+.legrow{display:flex;gap:10px;margin-top:4px}
+.legitem{display:flex;align-items:center;gap:4px;font-size:9px}
+.legsw{width:8px;height:8px;border-radius:1px}
+.twrap{overflow-x:auto;border:1px solid var(--bdr);border-radius:3px;margin-bottom:28px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead tr{background:rgba(0,255,136,.07);border-bottom:1px solid var(--bdr)}
+thead th{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1.5px;color:var(--hud);padding:9px 12px;text-align:left;white-space:nowrap}
+tbody tr{border-bottom:.5px solid rgba(255,255,255,.04);transition:background .1s}
+tbody tr:hover{background:rgba(0,204,255,.04)}
+td{padding:8px 12px;vertical-align:middle}
+td.mono{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--hud2)}
+td.warn{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--warn)}
+td.dim{color:var(--dim);font-size:10px}.td.name{font-weight:700}
+.gbadge{display:inline-block;padding:2px 7px;border-radius:1px;font-size:8px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.g5{background:rgba(0,255,136,.12);color:var(--hud)}.g45{background:rgba(0,204,255,.12);color:var(--hud2)}.g4{background:rgba(100,100,150,.2);color:var(--dim)}
+hr.div{border:none;border-top:1px solid var(--bdr);margin:24px 0}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-bottom:28px}
+.bcard{background:var(--p2);border:1px solid rgba(255,68,34,.2);border-radius:3px;padding:14px}
+.bname{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--warn);letter-spacing:1.5px;margin-bottom:2px}
+.bsub{font-size:10px;color:var(--dim);margin-bottom:8px}
+.bcv{background:rgba(0,0,0,.3);border-radius:2px;padding:6px;display:flex;align-items:center;justify-content:center;min-height:54px;margin-bottom:8px;border:.5px solid rgba(255,255,255,.05)}
+.bsp{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
+.bsr{display:flex;justify-content:space-between;font-size:10px;padding:2px 0;border-bottom:.5px solid rgba(255,255,255,.04)}
+.bsr:last-child{border-bottom:none}
+.bk{color:var(--dim)}.bv{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--tx)}
+.techgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;margin-bottom:28px}
+.techcard{background:var(--p2);border:1px solid var(--b2);border-radius:3px;padding:14px}
+.tchead{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:.5px solid rgba(255,255,255,.07)}
+.tcimg{width:70px;height:46px;object-fit:contain;filter:drop-shadow(0 0 4px rgba(0,204,255,.25));flex-shrink:0}
+.tcname{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--hud2);letter-spacing:1px}
+.tcsub{font-size:9px;color:var(--dim);margin-top:1px}
+.sg{margin-bottom:9px}
+.sgt{font-size:9px;font-weight:700;color:var(--amb);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;font-family:'Orbitron',monospace}
+.si{display:flex;gap:6px;padding:3px 0;border-bottom:.5px solid rgba(255,255,255,.03);font-size:10px}
+.si:last-child{border-bottom:none}
+.sik{color:var(--dim);min-width:88px;flex-shrink:0}.siv{color:var(--tx);font-family:'Share Tech Mono',monospace;font-size:9px;flex:1}.siv.h{color:var(--hud)}
+.matrix-wrap{overflow-x:auto;margin-bottom:28px}
+.matrix{border-collapse:collapse;font-size:10px;min-width:620px}
+.matrix th,.matrix td{padding:6px 10px;border:.5px solid rgba(255,255,255,.07);text-align:center}
+.matrix thead th{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;color:var(--hud2);background:rgba(0,204,255,.06)}
+.matrix tbody th{font-size:10px;color:var(--dim);text-align:left;background:rgba(0,0,0,.2);font-weight:400;white-space:nowrap}
+
+/* ── BUDGET SIMULATOR ─────────────────────────────────────────────────── */
+#tab-budget{max-width:900px;margin:0 auto}
+.balance-block{text-align:center;padding:32px 20px 24px;background:var(--p2);border:1px solid rgba(255,170,0,.2);border-radius:6px;margin-bottom:28px;position:relative;overflow:hidden}
+.balance-block::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,170,0,.07),transparent 70%);pointer-events:none}
+.bal-label{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:4px;color:var(--dim);margin-bottom:8px}
+.bal-amount{font-family:'Orbitron',monospace;font-size:48px;font-weight:900;color:var(--amb);letter-spacing:2px;line-height:1;transition:color .3s,transform .15s}
+.bal-amount.bump{transform:scale(1.04)}
+.bal-amount.low{color:#ff8800}
+.bal-amount.broke{color:var(--warn)}
+.bal-bar-bg{width:100%;max-width:500px;margin:16px auto 8px;height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+.bal-bar{height:100%;background:linear-gradient(90deg,var(--hud),var(--amb));border-radius:4px;transition:width .4s ease-out}
+.bal-bar.low{background:linear-gradient(90deg,var(--warn),#ff8800)}
+.bal-meta{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:1px}
+/* Shop categories */
+.cat-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--hud);letter-spacing:3px;margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.cat-title::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--hud);box-shadow:0 0 6px var(--hud);flex-shrink:0}
+.cat-title.warn{color:var(--warn)}.cat-title.warn::before{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.cat-title.amb{color:var(--amb)}.cat-title.amb::before{background:var(--amb);box-shadow:0 0 6px var(--amb)}
+.items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:8px}
+/* Item card */
+.item-card{background:var(--p2);border:1px solid rgba(255,255,255,.06);border-radius:4px;padding:14px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;transition:border-color .2s,opacity .2s;cursor:default}
+.item-card:hover{border-color:rgba(255,170,0,.3)}
+.item-card.broke{opacity:.4;pointer-events:none}
+.item-card.owned{border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.03)}
+.item-emoji{font-size:36px;line-height:1;display:block;margin-bottom:2px}
+.item-img-wrap{width:100%;height:52px;display:flex;align-items:center;justify-content:center}
+.item-img-wrap img{max-width:100%;max-height:52px;object-fit:contain;filter:drop-shadow(0 0 4px rgba(0,204,255,.3))}
+.item-img-wrap svg{max-width:100%;height:48px}
+.item-name{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;color:var(--tx);letter-spacing:1px;line-height:1.3}
+.item-price{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--amb);font-weight:600}
+.item-controls{display:flex;align-items:center;gap:8px;margin-top:2px}
+.ic-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:300;cursor:pointer;transition:all .15s;background:transparent;line-height:1;flex-shrink:0}
+.ic-btn.plus{border-color:var(--hud);color:var(--hud)}
+.ic-btn.plus:hover{background:rgba(0,255,136,.15);transform:scale(1.1)}
+.ic-btn.plus:active{transform:scale(0.9)}
+.ic-btn.minus{border-color:var(--warn);color:var(--warn)}
+.ic-btn.minus:hover{background:rgba(255,68,34,.15)}
+.ic-qty{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:var(--tx);min-width:28px}
+/* Receipt */
+.receipt{background:var(--p3);border:1px solid rgba(255,170,0,.2);border-radius:4px;padding:20px;margin-top:28px}
+.receipt-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--amb);letter-spacing:3px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.reset-btn{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;padding:5px 12px;border:.5px solid rgba(255,68,34,.3);border-radius:2px;background:transparent;color:var(--warn);cursor:pointer}
+.reset-btn:hover{background:rgba(255,68,34,.1)}
+.receipt-empty{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);text-align:center;padding:24px;letter-spacing:1px}
+.rline{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:.5px solid rgba(255,255,255,.05);font-size:12px}
+.rline:last-child{border-bottom:none}
+.rname{color:var(--tx);font-weight:600}.rqty{color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:10px;min-width:36px;text-align:center}.rtotal{color:var(--amb);font-family:'Share Tech Mono',monospace;font-size:10px;text-align:right;min-width:90px}
+.receipt-total{display:flex;justify-content:space-between;padding-top:12px;margin-top:10px;border-top:2px solid rgba(255,170,0,.3)}
+.rt-lbl{font-family:'Orbitron',monospace;font-size:10px;color:var(--dim);letter-spacing:2px}
+.rt-val{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:var(--amb)}
+/* Comparisons */
+.comparisons{background:rgba(0,0,0,.25);border-radius:3px;padding:12px 14px;margin-top:14px;border:.5px solid rgba(0,204,255,.1)}
+.comp-title{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--dim);margin-bottom:8px}
+.comp-line{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);padding:3px 0;line-height:1.5}
+.comp-line span{color:var(--hud2)}
+#footer{height:26px;background:var(--pan);border-top:1px solid var(--bdr);display:flex;align-items:center;padding:0 20px;gap:18px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px}
+.sdot{width:4px;height:4px;border-radius:50%;background:var(--hud);display:inline-block;box-shadow:0 0 4px var(--hud);margin-right:4px}
+@media(max-width:900px){.cmp{grid-template-columns:1fr;}}
+@keyframes popIn{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <div class="logo">STRIKE<span>MAP</span></div>
+  <nav style="display:flex;gap:4px">
+    <a class="nav-link" href="index.html">SIM</a>
+    <a class="nav-link active" href="info.html">INTEL</a>
+  </nav>
+  <div id="clock">--:--:-- PDT</div>
+</div>
+<div id="page">
+<div class="tab-row">
+  <button class="tb active" data-tab="aircraft">AIRCRAFT</button>
+  <button class="tb" data-tab="ordnance">ORDNANCE</button>
+  <button class="tb" data-tab="tech">TECH</button>
+  <button class="tb" data-tab="budget">💰 SPEND $7B</button>
+</div>
+
+<!-- AIRCRAFT TAB -->
+<div class="tp active" id="tab-aircraft">
+  <div class="sh"><div class="sd"></div><span class="st">Side-by-Side Comparison</span></div>
+  <div class="cmp">
+    <div class="ccard">
+      <select class="csel" id="sel-a" onchange="updateCmp()">
+        <optgroup label="F-35I"><option value="f35i">F-35I Adir (Mighty One)</option></optgroup>
+        <optgroup label="F-16"><option value="f16i">F-16I Sufa (Storm)</option><option value="f16cd">F-16C/D Barak</option></optgroup>
+        <optgroup label="F-15"><option value="f15i">F-15I Ra'am (Thunder)</option><option value="f15c">F-15C Baz</option><option value="f15d">F-15D Baz</option></optgroup>
+      </select>
+      <div class="imgbox" id="img-a"></div>
+      <div class="cname" id="ca-name">—</div><div class="csub" id="ca-sub">—</div>
+      <div class="sr"><span class="sk">Speed</span><span class="sv g" id="ca-spd">—</span></div>
+      <div class="sr"><span class="sk">Ceiling</span><span class="sv" id="ca-ceil">—</span></div>
+      <div class="sr"><span class="sk">Combat radius</span><span class="sv" id="ca-range">—</span></div>
+      <div class="sr"><span class="sk">Payload</span><span class="sv r" id="ca-pay">—</span></div>
+      <div class="sr"><span class="sk">Engine(s)</span><span class="sv" id="ca-eng">—</span></div>
+      <div class="sr"><span class="sk">Stealth</span><span class="sv a" id="ca-st">—</span></div>
+      <div class="sr"><span class="sk">IAF service</span><span class="sv" id="ca-yr">—</span></div>
+      <div class="sr"><span class="sk">Fleet size</span><span class="sv" id="ca-fleet">—</span></div>
+      <div class="sr"><span class="sk">Unit cost</span><span class="sv a" id="ca-cost">—</span></div>
+      <div class="sr"><span class="sk">Role</span><span class="sv" id="ca-role">—</span></div>
+    </div>
+    <div class="cmid">
+      <div class="vs">VS</div>
+      <div class="radwrap">
+        <div class="radlbl">CAPABILITY</div>
+        <canvas id="radar" width="174" height="174"></canvas>
+        <div class="legrow">
+          <div class="legitem"><div class="legsw" style="background:rgba(0,255,136,.5)"></div><span style="color:var(--hud);font-size:9px">A</span></div>
+          <div class="legitem"><div class="legsw" style="background:rgba(255,68,34,.5)"></div><span style="color:var(--warn);font-size:9px">B</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="ccard">
+      <select class="csel" id="sel-b" onchange="updateCmp()">
+        <optgroup label="F-35I"><option value="f35i">F-35I Adir (Mighty One)</option></optgroup>
+        <optgroup label="F-16"><option value="f16i" selected>F-16I Sufa (Storm)</option><option value="f16cd">F-16C/D Barak</option></optgroup>
+        <optgroup label="F-15"><option value="f15i">F-15I Ra'am (Thunder)</option><option value="f15c">F-15C Baz</option><option value="f15d">F-15D Baz</option></optgroup>
+      </select>
+      <div class="imgbox" id="img-b"></div>
+      <div class="cname" id="cb-name">—</div><div class="csub" id="cb-sub">—</div>
+      <div class="sr"><span class="sk">Speed</span><span class="sv g" id="cb-spd">—</span></div>
+      <div class="sr"><span class="sk">Ceiling</span><span class="sv" id="cb-ceil">—</span></div>
+      <div class="sr"><span class="sk">Combat radius</span><span class="sv" id="cb-range">—</span></div>
+      <div class="sr"><span class="sk">Payload</span><span class="sv r" id="cb-pay">—</span></div>
+      <div class="sr"><span class="sk">Engine(s)</span><span class="sv" id="cb-eng">—</span></div>
+      <div class="sr"><span class="sk">Stealth</span><span class="sv a" id="cb-st">—</span></div>
+      <div class="sr"><span class="sk">IAF service</span><span class="sv" id="cb-yr">—</span></div>
+      <div class="sr"><span class="sk">Fleet size</span><span class="sv" id="cb-fleet">—</span></div>
+      <div class="sr"><span class="sk">Unit cost</span><span class="sv a" id="cb-cost">—</span></div>
+      <div class="sr"><span class="sk">Role</span><span class="sv" id="cb-role">—</span></div>
+    </div>
+  </div>
+  <hr class="div">
+  <div class="sh"><div class="sd"></div><span class="st">Full Aircraft Database</span></div>
+  <div class="twrap"><table><thead><tr><th>DESIGNATION</th><th>IAF NAME</th><th>GEN</th><th>ROLE</th><th>SPEED</th><th>CEILING</th><th>RADIUS</th><th>PAYLOAD</th><th>ENGINES</th><th>STEALTH</th><th>SERVICE</th><th>FLEET</th><th>COST</th></tr></thead><tbody id="jet-tbody"></tbody></table></div>
+</div>
+
+<!-- ORDNANCE TAB -->
+<div class="tp" id="tab-ordnance">
+  <div class="sh"><div class="sd w"></div><span class="st w">Weapon Config Matrix</span></div>
+  <p style="font-size:11px;color:var(--dim);margin-bottom:12px">Combine warhead + guidance kit to create precision weapons.</p>
+  <div class="matrix-wrap"><table class="matrix" id="matrix-table"></table></div>
+  <hr class="div">
+  <div class="sh"><div class="sd w"></div><span class="st w">Ordnance Database</span></div>
+  <div class="bgrid" id="bomb-grid"></div>
+</div>
+
+<!-- TECH TAB -->
+<div class="tp" id="tab-tech">
+  <div class="sh"><div class="sd a"></div><span class="st a">Avionics & Systems</span></div>
+  <div class="techgrid" id="tech-grid"></div>
+  <hr class="div">
+  <div class="sh"><div class="sd a"></div><span class="st a">Systems Comparison</span></div>
+  <div class="twrap"><table><thead><tr><th>SYSTEM</th><th>F-35I ADIR</th><th>F-16I SUFA</th><th>F-16C/D BARAK</th><th>F-15I RA'AM</th><th>F-15C BAZ</th></tr></thead><tbody id="sys-tbody"></tbody></table></div>
+</div>
+
+<!-- BUDGET SIMULATOR TAB -->
+<div class="tp" id="tab-budget">
+  <div class="balance-block">
+    <div class="bal-label">US MILITARY AID TO ISRAEL — SPEND IT ALL</div>
+    <div class="bal-amount" id="bal">$7,000,000,000</div>
+    <div class="bal-bar-bg"><div class="bal-bar" id="bal-bar" style="width:100%"></div></div>
+    <div class="bal-meta" id="bal-meta">$0 spent &nbsp;·&nbsp; $7,000,000,000 remaining</div>
+  </div>
+
+  <div class="cat-title warn">AIRCRAFT</div>
+  <div class="items-grid" id="cat-aircraft"></div>
+
+  <div class="cat-title warn">PRECISION MUNITIONS</div>
+  <div class="items-grid" id="cat-munitions"></div>
+
+  <div class="cat-title amb">AIR DEFENSE SYSTEMS</div>
+  <div class="items-grid" id="cat-defense"></div>
+
+  <div class="cat-title">VEHICLES &amp; PLATFORMS</div>
+  <div class="items-grid" id="cat-vehicles"></div>
+
+  <div class="cat-title">CIVILIAN COMPARISON</div>
+  <div class="items-grid" id="cat-civilian"></div>
+
+  <div class="receipt">
+    <div class="receipt-title">
+      <span>RECEIPT</span>
+      <button class="reset-btn" onclick="resetBudget()">↺ RESET</button>
+    </div>
+    <div id="receipt-body"><div class="receipt-empty">Nothing purchased yet — add items above</div></div>
+    <div class="receipt-total" id="receipt-total" style="display:none">
+      <span class="rt-lbl">TOTAL SPENT</span>
+      <span class="rt-val" id="receipt-total-val">$0</span>
+    </div>
+    <div class="comparisons" id="comparisons" style="display:none">
+      <div class="comp-title">WITH THAT MONEY YOU COULD ALSO BUY...</div>
+      <div id="comp-lines"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+<div id="footer"><span><span class="sdot"></span>INTEL DB</span><span>IAF EDUCATIONAL SIMULATOR</span><span style="margin-left:auto">STRIKEMAP v5.1</span></div>
+
+<script>
+const IMG_F35="data:image/png;base64,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";
+const IMG_F16="data:image/png;base64,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";
+const IMG_F15="data:image/png;base64,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";
+const JETS={
+  f35i:{price:110000000,name:"F-35I ADIR",iaf:"Adir (Mighty One)",spd:"Mach 1.6",ceil:"50,000 ft",pay:"18,000 lb (ext)",st:"LO 5th gen",role:"Multirole deep strike",img:"F35",
+    canCarry:["mk82+none","mk82+jdam","mk82+jdamer","mk82+pave2","mk83+jdam","mk84+jdam","mk84+pave2","mk84+spice2000","gbu39+none","spice250+none","blu109+jdam"]},
+  f16i:{price:70000000,name:"F-16I SUFA",iaf:"Sufa (Storm)",spd:"Mach 2.0",ceil:"50,000 ft",pay:"17,750 lb",st:"None",role:"Multirole strike",img:"F16",
+    canCarry:["mk82+none","mk82+jdam","mk82+jdamer","mk82+pave2","mk82+pave3","mk83+none","mk83+jdam","mk83+pave2","mk84+none","mk84+jdam","mk84+pave2","mk84+pave3","mk84+spice2000","blu109+jdam","blu109+pave3","gbu39+none","spice250+none"]},
+  f16cd:{price:25000000,name:"F-16C/D BARAK",iaf:"Barak (Lightning)",spd:"Mach 2.0",ceil:"50,000 ft",pay:"12,000 lb",st:"None",role:"Multirole",img:"F16",
+    canCarry:["mk82+none","mk82+jdam","mk82+pave2","mk83+none","mk83+jdam","mk84+none","mk84+jdam","mk84+pave2","mk84+pave3","gbu39+none","spice250+none"]},
+  f15i:{price:100000000,name:"F-15I RA'AM",iaf:"Ra'am (Thunder)",spd:"Mach 2.5",ceil:"60,000 ft",pay:"23,000 lb",st:"None",role:"Long-range strike",img:"F15",
+    canCarry:["mk82+none","mk82+jdam","mk82+pave2","mk83+none","mk83+jdam","mk84+none","mk84+jdam","mk84+pave2","mk84+pave3","mk84+spice2000","blu109+none","blu109+jdam","blu109+pave3","gbu28+none","gbu39+none","spice250+none"]},
+  f15c:{price:28000000,name:"F-15C BAZ",iaf:"Baz (Hawk)",spd:"Mach 2.5",ceil:"65,000 ft",pay:"AAM only",st:"None",role:"Air superiority ONLY",img:"F15",canCarry:[]},
+  f15d:{price:28000000,name:"F-15D BAZ",iaf:"Baz two-seat",spd:"Mach 2.5",ceil:"65,000 ft",pay:"16,000 lb",st:"None",role:"Trainer / limited strike",img:"F15",
+    canCarry:["mk82+none","mk82+jdam","mk84+jdam"]},
+};
+const IMGMAP={F35:IMG_F35,F16:IMG_F16,F15:IMG_F15};
+var BSVG={};
+// ── REALISTIC BOMB ILLUSTRATIONS ─────────────────────────────────────────
+// Each SVG is a 300×90 side-profile with metal gradients, component labels, dimensions
+
+// MK 82 SLICK – olive drab, fat body, X-fins
+BSVG["mk82+none"]=`<svg viewBox="0 0 300 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="b1b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8a9e6a"/><stop offset="40%" stop-color="#bcd08a"/><stop offset="100%" stop-color="#536040"/></linearGradient>
+  <linearGradient id="b1n" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7a8e5a"/><stop offset="100%" stop-color="#a0b47a"/></linearGradient>
+  <radialGradient id="b1s" cx="50%" cy="35%"><stop offset="0%" stop-color="#d0e8a0" stop-opacity=".4"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+</defs>
+<!-- Shadow -->
+<ellipse cx="165" cy="78" rx="105" ry="5" fill="rgba(0,0,0,0.25)"/>
+<!-- Body -->
+<rect x="68" y="30" width="154" height="26" fill="url(#b1b)"/>
+<rect x="68" y="30" width="154" height="26" fill="url(#b1s)"/>
+<!-- Nose cone -->
+<path d="M68 30 Q50 37 38 43 Q50 49 68 56Z" fill="url(#b1n)"/>
+<!-- Tail block -->
+<rect x="222" y="30" width="24" height="26" fill="#536040"/>
+<!-- X-fins -->
+<polygon points="224,30 246,30 246,16 232,24" fill="#415030"/>
+<polygon points="224,56 246,56 246,70 232,62" fill="#415030"/>
+<polygon points="224,34 210,18 218,30" fill="#415030"/>
+<polygon points="224,52 210,68 218,56" fill="#415030"/>
+<!-- Fuze well -->
+<circle cx="86" cy="43" r="5" fill="#2a3520" stroke="#9ab060" stroke-width="0.8"/>
+<circle cx="86" cy="43" r="2" fill="#1a2510"/>
+<!-- Explosive band marking -->
+<rect x="148" y="30" width="42" height="26" fill="#c8a820" opacity="0.35"/>
+<!-- Body seam -->
+<line x1="68" y1="43" x2="222" y2="43" stroke="#7a8e5a" stroke-width="0.5" stroke-dasharray="8 6"/>
+<!-- Stencil text -->
+<text x="102" y="41" font-family="Share Tech Mono,monospace" font-size="7.5" fill="#2a3520" opacity=".7" letter-spacing="1">MK 82</text>
+<text x="152" y="41" font-family="Share Tech Mono,monospace" font-size="6.5" fill="#c8a820">EXPL</text>
+<!-- Dimension line -->
+<line x1="38" y1="72" x2="246" y2="72" stroke="rgba(180,200,140,0.4)" stroke-width="0.8"/>
+<line x1="38" y1="69" x2="38" y2="75" stroke="rgba(180,200,140,0.4)" stroke-width="0.8"/>
+<line x1="246" y1="69" x2="246" y2="75" stroke="rgba(180,200,140,0.4)" stroke-width="0.8"/>
+<text x="142" y="82" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(180,210,130,0.7)" text-anchor="middle">1.57 m · 227 kg · Mk 82 "Slick"</text>
+</svg>`;
+
+// GBU-38 – Mk82 body + JDAM grey tail kit with strake fins + GPS dome
+BSVG["mk82+jdam"]=`<svg viewBox="0 0 300 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="g38b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8a9e6a"/><stop offset="40%" stop-color="#bcd08a"/><stop offset="100%" stop-color="#536040"/></linearGradient>
+  <linearGradient id="g38j" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5a6a7a"/><stop offset="40%" stop-color="#8a9aaa"/><stop offset="100%" stop-color="#3a4a5a"/></linearGradient>
+</defs>
+<ellipse cx="162" cy="78" rx="105" ry="5" fill="rgba(0,0,0,0.25)"/>
+<!-- Mk82 body -->
+<rect x="58" y="32" width="128" height="24" fill="url(#g38b)"/>
+<path d="M58 32 Q40 39 28 44 Q40 49 58 56Z" fill="#8a9e6a"/>
+<!-- JDAM tail unit -->
+<rect x="186" y="26" width="62" height="36" rx="1" fill="url(#g38j)"/>
+<!-- JDAM internal cell lines -->
+<line x1="198" y1="26" x2="198" y2="62" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="210" y1="26" x2="210" y2="62" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="222" y1="26" x2="222" y2="62" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="234" y1="26" x2="234" y2="62" stroke="#3a4a5a" stroke-width="1.5"/>
+<!-- JDAM strake fins -->
+<polygon points="186,26 248,26 248,14 202,20" fill="#445566"/>
+<polygon points="186,62 248,62 248,74 202,68" fill="#445566"/>
+<!-- GPS antenna dome -->
+<ellipse cx="192" cy="27" rx="8" ry="6" fill="#6a7a8a" stroke="#8899aa" stroke-width="0.8"/>
+<circle cx="192" cy="27" r="3" fill="#4a5a6a"/>
+<!-- Fuze -->
+<circle cx="72" cy="44" r="4" fill="#2a3520" stroke="#9ab060" stroke-width="0.8"/>
+<!-- Labels -->
+<text x="88" y="42" font-family="Share Tech Mono,monospace" font-size="7" fill="#2a3520" opacity=".7">MK 82</text>
+<text x="195" y="46" font-family="Share Tech Mono,monospace" font-size="6.5" fill="#aaccee">JDAM</text>
+<text x="187" y="21" font-family="Share Tech Mono,monospace" font-size="6" fill="#88bbcc">GPS</text>
+<line x1="192" y1="22" x2="192" y2="24" stroke="#88bbcc" stroke-width="0.7"/>
+<text x="142" y="82" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(140,180,220,0.7)" text-anchor="middle">GBU-38 JDAM · 500 lb · CEP ~5m · GPS/INS</text>
+</svg>`;
+
+// GBU-12 PAVEWAY II – laser seeker nose + cruciform canards + Paveway tail
+BSVG["mk82+pave2"]=`<svg viewBox="0 0 300 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="p12b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8a9e6a"/><stop offset="40%" stop-color="#bcd08a"/><stop offset="100%" stop-color="#536040"/></linearGradient>
+  <linearGradient id="p12p" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4e4e60"/><stop offset="40%" stop-color="#7e7e90"/><stop offset="100%" stop-color="#2e2e40"/></linearGradient>
+</defs>
+<ellipse cx="152" cy="78" rx="108" ry="5" fill="rgba(0,0,0,0.25)"/>
+<!-- Laser seeker ring -->
+<circle cx="44" cy="44" r="13" fill="url(#p12p)" stroke="#667788" stroke-width="1"/>
+<circle cx="44" cy="44" r="7" fill="#1a2030" stroke="#4466aa" stroke-width="1.2"/>
+<circle cx="44" cy="44" r="3.5" fill="#0a1020"/>
+<!-- Seeker glare -->
+<circle cx="41" cy="41" r="2" fill="rgba(80,140,220,0.5)"/>
+<!-- Laser label -->
+<text x="30" y="25" font-family="Share Tech Mono,monospace" font-size="6" fill="#88aacc">LASER</text>
+<line x1="44" y1="28" x2="44" y2="31" stroke="#88aacc" stroke-width="0.7"/>
+<!-- Front canard fins -->
+<polygon points="56,32 74,20 74,32 62,32" fill="#4e5e6e"/>
+<polygon points="56,56 74,68 74,56 62,56" fill="#4e5e6e"/>
+<!-- Bomb body -->
+<rect x="56" y="32" width="142" height="24" fill="url(#p12b)"/>
+<!-- Paveway tail -->
+<rect x="198" y="26" width="56" height="36" fill="url(#p12p)"/>
+<!-- Paveway cruciform large fins -->
+<polygon points="198,26 254,26 254,12 212,19" fill="#3e3e50"/>
+<polygon points="198,62 254,62 254,76 212,69" fill="#3e3e50"/>
+<polygon points="198,30 180,16 190,30" fill="#3e3e50"/>
+<polygon points="198,58 180,72 190,58" fill="#3e3e50"/>
+<!-- Body seam -->
+<line x1="56" y1="44" x2="198" y2="44" stroke="#7a8e5a" stroke-width="0.5" stroke-dasharray="8 6"/>
+<text x="90" y="42" font-family="Share Tech Mono,monospace" font-size="7" fill="#2a3520" opacity=".7">MK 82</text>
+<text x="208" y="47" font-family="Share Tech Mono,monospace" font-size="6.5" fill="#9999bb">PW-II</text>
+<text x="142" y="82" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(160,160,220,0.7)" text-anchor="middle">GBU-12 Paveway II · 500 lb · CEP ~3m · Semi-active laser</text>
+</svg>`;
+
+// GBU-31 – Large Mk84 body + JDAM (bigger)
+BSVG["mk84+jdam"]=`<svg viewBox="0 0 300 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="g31b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8a9e6a"/><stop offset="40%" stop-color="#c8e09a"/><stop offset="100%" stop-color="#536040"/></linearGradient>
+  <linearGradient id="g31j" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5a6a7a"/><stop offset="40%" stop-color="#8a9aaa"/><stop offset="100%" stop-color="#3a4a5a"/></linearGradient>
+</defs>
+<ellipse cx="154" cy="79" rx="112" ry="5" fill="rgba(0,0,0,0.28)"/>
+<!-- Fat Mk84 body -->
+<rect x="42" y="24" width="148" height="38" fill="url(#g31b)"/>
+<path d="M42 24 Q22 33 10 43 Q22 53 42 62Z" fill="#8a9e6a"/>
+<!-- Explosive band -->
+<rect x="118" y="24" width="52" height="38" fill="#c8a820" opacity="0.32"/>
+<text x="128" y="46" font-family="Share Tech Mono,monospace" font-size="7" fill="#d0b030">945 lb</text>
+<!-- JDAM large tail -->
+<rect x="190" y="18" width="68" height="50" rx="1" fill="url(#g31j)"/>
+<line x1="204" y1="18" x2="204" y2="68" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="218" y1="18" x2="218" y2="68" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="232" y1="18" x2="232" y2="68" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="246" y1="18" x2="246" y2="68" stroke="#3a4a5a" stroke-width="1.5"/>
+<!-- JDAM large fins -->
+<polygon points="190,18 258,18 258,4 208,12" fill="#445566"/>
+<polygon points="190,68 258,68 258,82 208,75" fill="#445566"/>
+<!-- GPS dome -->
+<ellipse cx="196" cy="20" rx="9" ry="7" fill="#6a7a8a" stroke="#8899aa" stroke-width="0.8"/>
+<circle cx="196" cy="20" r="4" fill="#4a5a6a"/>
+<!-- Fuze -->
+<circle cx="58" cy="43" r="5" fill="#2a3520" stroke="#9ab060" stroke-width="0.8"/>
+<text x="72" y="42" font-family="Share Tech Mono,monospace" font-size="7.5" fill="#2a3520" opacity=".7">MK 84</text>
+<text x="198" y="47" font-family="Share Tech Mono,monospace" font-size="7" fill="#aaccee">JDAM</text>
+<text x="146" y="84" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(140,180,220,0.7)" text-anchor="middle">GBU-31 JDAM · 2,000 lb · CEP ~5m</text>
+</svg>`;
+
+// SPICE 2000 – Mk84 + EO seeker kit + delta wings
+BSVG["mk84+spice2000"]=`<svg viewBox="0 0 300 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="sp2b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8a9e6a"/><stop offset="40%" stop-color="#c8e09a"/><stop offset="100%" stop-color="#536040"/></linearGradient>
+  <linearGradient id="sp2k" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6a5540"/><stop offset="40%" stop-color="#aa9070"/><stop offset="100%" stop-color="#3a2518"/></linearGradient>
+</defs>
+<ellipse cx="148" cy="79" rx="112" ry="5" fill="rgba(0,0,0,0.28)"/>
+<!-- Mk84 body -->
+<rect x="36" y="24" width="140" height="38" fill="url(#sp2b)"/>
+<path d="M36 24 Q16 33 4 43 Q16 53 36 62Z" fill="#8a9e6a"/>
+<!-- Spice 2000 kit -->
+<rect x="176" y="18" width="72" height="50" rx="2" fill="url(#sp2k)"/>
+<!-- EO module windows -->
+<rect x="180" y="22" width="36" height="14" rx="1" fill="#503820"/>
+<rect x="180" y="40" width="36" height="14" rx="1" fill="#402810"/>
+<!-- EO seeker nose (front of kit) -->
+<circle cx="248" cy="43" r="9" fill="#2a1a10" stroke="#7a6a5a" stroke-width="1"/>
+<circle cx="248" cy="43" r="6" fill="#111820" stroke="#336699" stroke-width="1.2"/>
+<circle cx="248" cy="43" r="3" fill="#0a0f18" opacity=".95"/>
+<!-- Lens glare -->
+<circle cx="245" cy="40" r="1.8" fill="rgba(80,150,255,0.55)"/>
+<!-- Pop-out delta wings -->
+<path d="M192 24 L174 6 L186 14 L200 24Z" fill="#8a7050"/>
+<path d="M192 62 L174 80 L186 72 L200 62Z" fill="#8a7050"/>
+<!-- Israeli flag on kit -->
+<rect x="182" y="24" width="14" height="9" fill="#fff" opacity=".65"/>
+<rect x="182" y="26" width="14" height="2" fill="#0038b8" opacity=".9"/>
+<rect x="182" y="30" width="14" height="2" fill="#0038b8" opacity=".9"/>
+<text x="50" y="42" font-family="Share Tech Mono,monospace" font-size="7" fill="#2a3520" opacity=".7">MK 84</text>
+<text x="183" y="37" font-family="Share Tech Mono,monospace" font-size="6.5" fill="#ccaa77">SPICE</text>
+<text x="183" y="45" font-family="Share Tech Mono,monospace" font-size="5.5" fill="#bb9966">EO/GPS</text>
+<text x="146" y="84" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(200,160,100,0.7)" text-anchor="middle">Spice 2000 · 2,000 lb · CEP &lt;1m · 100km range</text>
+</svg>`;
+
+// GBU-28 BUNKER BUSTER – very long thin penetrator rod
+BSVG["gbu28+none"]=`<svg viewBox="0 0 300 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="gbu28g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#505850"/><stop offset="40%" stop-color="#708070"/><stop offset="100%" stop-color="#303830"/></linearGradient>
+</defs>
+<ellipse cx="152" cy="62" rx="134" ry="5" fill="rgba(0,0,0,0.25)"/>
+<!-- Very long thin body -->
+<rect x="14" y="28" width="238" height="14" fill="url(#gbu28g)"/>
+<!-- Sharpened nose -->
+<path d="M14 28 L3 35 L14 42Z" fill="#505850"/>
+<!-- Tail laser guidance -->
+<rect x="252" y="24" width="32" height="22" fill="#404848"/>
+<!-- Tail fins - small cruciform -->
+<polygon points="252,28 282,28 282,18 260,23" fill="#303838"/>
+<polygon points="252,42 282,42 282,52 260,47" fill="#303838"/>
+<!-- Steel band reinforcement rings (thick case) -->
+<rect x="44" y="28" width="4" height="14" fill="#404840"/>
+<rect x="84" y="28" width="4" height="14" fill="#404840"/>
+<rect x="124" y="28" width="4" height="14" fill="#404840"/>
+<rect x="164" y="28" width="4" height="14" fill="#404840"/>
+<rect x="204" y="28" width="4" height="14" fill="#404840"/>
+<!-- Explosive fill band (small section) -->
+<rect x="136" y="28" width="50" height="14" fill="#b89020" opacity="0.4"/>
+<text x="142" y="38" font-family="Share Tech Mono,monospace" font-size="6" fill="#d0a830">630 lb</text>
+<!-- Label - thick steel case annotations -->
+<text x="56" y="37" font-family="Share Tech Mono,monospace" font-size="6" fill="rgba(180,210,180,0.6)" letter-spacing="1">THICK STEEL PENETRATOR</text>
+<text x="12" y="57" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(160,200,160,0.6)">GBU-28 · 5,000 lb · 100ft penetration · F-15E/EX ONLY</text>
+</svg>`;
+
+// SPICE 250 – small with delta wings, round EO nose
+BSVG["spice250+none"]=`<svg viewBox="0 0 300 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="s250b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5a6070"/><stop offset="40%" stop-color="#8a909a"/><stop offset="100%" stop-color="#3a4048"/></linearGradient>
+</defs>
+<ellipse cx="148" cy="76" rx="82" ry="5" fill="rgba(0,0,0,0.22)"/>
+<!-- EO seeker nose -->
+<circle cx="76" cy="44" r="14" fill="url(#s250b)" stroke="#5a6880" stroke-width="1"/>
+<circle cx="76" cy="44" r="9" fill="#1a2030" stroke="#4466bb" stroke-width="1.4"/>
+<circle cx="76" cy="44" r="4.5" fill="#0a1020" opacity=".95"/>
+<circle cx="73" cy="41" r="2.2" fill="rgba(80,160,255,0.6)"/>
+<text x="60" y="28" font-family="Share Tech Mono,monospace" font-size="6" fill="#88aadd">EO</text>
+<line x1="76" y1="31" x2="76" y2="34" stroke="#88aadd" stroke-width="0.7"/>
+<!-- Compact body -->
+<rect x="88" y="33" width="94" height="22" rx="2" fill="url(#s250b)"/>
+<!-- Pop-out delta wings -->
+<path d="M98 33 L78 14 L90 22 L104 33Z" fill="#6a7080"/>
+<path d="M98 55 L78 74 L90 66 L104 55Z" fill="#6a7080"/>
+<path d="M148 33 L164 18 L170 28 L154 33Z" fill="#6a7080"/>
+<path d="M148 55 L164 70 L170 62 L154 55Z" fill="#6a7080"/>
+<!-- Tail unit -->
+<rect x="182" y="36" width="32" height="16" rx="1" fill="#3a404a"/>
+<polygon points="182,36 214,36 214,26 194,31" fill="#2a303a"/>
+<polygon points="182,52 214,52 214,62 194,57" fill="#2a303a"/>
+<!-- Israeli flag -->
+<rect x="100" y="35" width="16" height="11" fill="#fff" opacity=".6"/>
+<rect x="100" y="37.5" width="16" height="2" fill="#0038b8" opacity=".85"/>
+<rect x="100" y="42" width="16" height="2" fill="#0038b8" opacity=".85"/>
+<text x="122" y="46" font-family="Share Tech Mono,monospace" font-size="7" fill="#ccddee" opacity=".9">SPICE-250</text>
+<text x="102" y="70" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(180,210,240,0.65)" text-anchor="middle">250 lb · CEP &lt;1m · AI scene-match · 110km range</text>
+</svg>`;
+
+// GBU-39 SDB – diamond cross-section, pop-out wings
+BSVG["gbu39+none"]=`<svg viewBox="0 0 300 86" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="sdb1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a5a70"/><stop offset="40%" stop-color="#7a8a9a"/><stop offset="100%" stop-color="#2a3a4a"/></linearGradient>
+</defs>
+<ellipse cx="150" cy="74" rx="88" ry="4" fill="rgba(0,0,0,0.22)"/>
+<!-- Diamond body - front -->
+<polygon points="90,30 90,54 180,54 180,30" fill="url(#sdb1)"/>
+<!-- Diamond top facet -->
+<polygon points="90,30 180,30 178,23 92,23" fill="#5a6a80"/>
+<!-- Diamond bottom facet -->
+<polygon points="90,54 180,54 178,61 92,61" fill="#2a3a4a"/>
+<!-- GPS nose cone -->
+<path d="M90 30 Q70 37 58 42 Q70 47 90 54Z" fill="#5a6a80"/>
+<circle cx="62" cy="42" r="6" fill="#3a4a5a" stroke="#5577bb" stroke-width="0.9"/>
+<!-- Pop-out diamond wings -->
+<polygon points="110,23 96,8 106,16 116,23" fill="#4a5a6a"/>
+<polygon points="110,61 96,76 106,68 116,61" fill="#4a5a6a"/>
+<polygon points="158,23 170,8 162,16 152,23" fill="#4a5a6a"/>
+<polygon points="158,61 170,76 162,68 152,61" fill="#4a5a6a"/>
+<!-- GPS tail unit -->
+<rect x="180" y="26" width="44" height="32" rx="1" fill="#3a4a5a"/>
+<line x1="192" y1="26" x2="192" y2="58" stroke="#2a3a4a" stroke-width="1.5"/>
+<line x1="204" y1="26" x2="204" y2="58" stroke="#2a3a4a" stroke-width="1.5"/>
+<line x1="216" y1="26" x2="216" y2="58" stroke="#2a3a4a" stroke-width="1.5"/>
+<text x="110" y="42" font-family="Share Tech Mono,monospace" font-size="7.5" fill="#aaccdd" opacity=".9">GBU-39 SDB</text>
+<text x="150" y="70" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(140,190,230,0.65)" text-anchor="middle">285 lb · GPS/INS · 4× internal F-35 · 110km glide</text>
+</svg>`;
+
+// BLU-109 + JDAM – thick steel penetrator body + JDAM tail
+BSVG["blu109+jdam"]=`<svg viewBox="0 0 300 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="b109b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#606060"/><stop offset="40%" stop-color="#909090"/><stop offset="100%" stop-color="#3a3a3a"/></linearGradient>
+  <linearGradient id="b109j" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5a6a7a"/><stop offset="40%" stop-color="#8a9aaa"/><stop offset="100%" stop-color="#3a4a5a"/></linearGradient>
+</defs>
+<ellipse cx="148" cy="78" rx="110" ry="5" fill="rgba(0,0,0,0.28)"/>
+<!-- Thick steel body -->
+<rect x="36" y="26" width="148" height="34" fill="url(#b109b)"/>
+<path d="M36 26 Q18 35 6 43 Q18 51 36 60Z" fill="#606060"/>
+<!-- Steel band rings showing thick case -->
+<line x1="60" y1="26" x2="60" y2="60" stroke="#484848" stroke-width="3"/>
+<line x1="90" y1="26" x2="90" y2="60" stroke="#484848" stroke-width="3"/>
+<line x1="120" y1="26" x2="120" y2="60" stroke="#484848" stroke-width="3"/>
+<line x1="150" y1="26" x2="150" y2="60" stroke="#484848" stroke-width="3"/>
+<!-- Small explosive section -->
+<rect x="148" y="26" width="36" height="34" fill="#b89020" opacity="0.38"/>
+<text x="152" y="46" font-family="Share Tech Mono,monospace" font-size="6" fill="#d0a830">530 lb</text>
+<!-- JDAM tail -->
+<rect x="184" y="20" width="66" height="46" rx="1" fill="url(#b109j)"/>
+<line x1="198" y1="20" x2="198" y2="66" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="212" y1="20" x2="212" y2="66" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="226" y1="20" x2="226" y2="66" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="240" y1="20" x2="240" y2="66" stroke="#3a4a5a" stroke-width="1.5"/>
+<polygon points="184,20 250,20 250,7 202,14" fill="#445566"/>
+<polygon points="184,66 250,66 250,79 202,72" fill="#445566"/>
+<ellipse cx="190" cy="22" rx="8" ry="6" fill="#6a7a8a" stroke="#8899aa" stroke-width="0.8"/>
+<!-- Annotation: thick steel -->
+<text x="54" y="39" font-family="Share Tech Mono,monospace" font-size="6" fill="rgba(200,200,200,0.6)">THICK STEEL</text>
+<text x="54" y="48" font-family="Share Tech Mono,monospace" font-size="6" fill="rgba(180,180,180,0.5)">PENETRATOR</text>
+<text x="190" y="46" font-family="Share Tech Mono,monospace" font-size="6.5" fill="#aaccee">JDAM</text>
+<text x="146" y="84" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(140,180,220,0.65)" text-anchor="middle">GBU-31(v)3 · 2,000 lb · BLU-109 + JDAM · Hardened bunkers</text>
+</svg>`;
+
+// MK83 + JDAM
+BSVG["mk83+jdam"]=`<svg viewBox="0 0 300 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="g83b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8a9e6a"/><stop offset="40%" stop-color="#bcd08a"/><stop offset="100%" stop-color="#536040"/></linearGradient>
+  <linearGradient id="g83j" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5a6a7a"/><stop offset="40%" stop-color="#8a9aaa"/><stop offset="100%" stop-color="#3a4a5a"/></linearGradient>
+</defs>
+<ellipse cx="152" cy="76" rx="108" ry="4" fill="rgba(0,0,0,0.24)"/>
+<rect x="50" y="28" width="138" height="28" fill="url(#g83b)"/>
+<path d="M50 28 Q32 36 20 42 Q32 48 50 56Z" fill="#8a9e6a"/>
+<rect x="140" y="28" width="48" height="28" fill="#c8a820" opacity="0.30"/>
+<rect x="188" y="22" width="64" height="40" rx="1" fill="url(#g83j)"/>
+<line x1="202" y1="22" x2="202" y2="62" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="216" y1="22" x2="216" y2="62" stroke="#3a4a5a" stroke-width="1.5"/>
+<line x1="230" y1="22" x2="230" y2="62" stroke="#3a4a5a" stroke-width="1.5"/>
+<polygon points="188,22 252,22 252,10 206,16" fill="#445566"/>
+<polygon points="188,62 252,62 252,74 206,68" fill="#445566"/>
+<ellipse cx="194" cy="23" rx="8" ry="6" fill="#6a7a8a" stroke="#8899aa" stroke-width="0.8"/>
+<circle cx="65" cy="42" r="4" fill="#2a3520" stroke="#9ab060" stroke-width="0.8"/>
+<text x="78" y="42" font-family="Share Tech Mono,monospace" font-size="7" fill="#2a3520" opacity=".7">MK 83</text>
+<text x="197" y="45" font-family="Share Tech Mono,monospace" font-size="6.5" fill="#aaccee">JDAM</text>
+<text x="142" y="80" font-family="Share Tech Mono,monospace" font-size="7" fill="rgba(140,180,220,0.65)" text-anchor="middle">GBU-32 JDAM · 1,000 lb · CEP ~5m</text>
+</svg>`;
+
+// Default fallback
+BSVG["mk82+pave3"]=BSVG["mk82+pave2"];
+BSVG["mk83+none"]=BSVG["mk83+jdam"];
+BSVG["mk83+pave2"]=BSVG["mk83+jdam"];
+BSVG["mk84+none"]=BSVG["mk84+jdam"];
+BSVG["mk84+pave2"]=BSVG["mk84+jdam"];
+BSVG["mk84+pave3"]=BSVG["mk84+jdam"];
+BSVG["mk84+spice2000"]=BSVG["mk84+spice2000"];
+BSVG["mk82+jdamer"]=BSVG["mk82+jdam"];
+BSVG["blu109+none"]=BSVG["blu109+jdam"];
+BSVG["blu109+pave3"]=BSVG["blu109+jdam"];
+function getBSVG(k){return BSVG[k]||BSVG['mk82+none']||'';}
+
+// ── JETS INFO DATA ────────────────────────────────────────────────────────
+var JETS_INFO={
+  f35i:{name:"F-35I ADIR",iaf:"Adir (Mighty One)",gen:"5",spd:"Mach 1.6",ceil:"50,000 ft",range:"~690 nmi",pay:"18,000 lb",eng:"1x F135-PW-100",st:"LO 5th gen",yr:"2017",fleet:"~50",cost:"$110M",role:"Multirole deep strike",img:"F35",radar:[65,72,70,95,65,95]},
+  f16i:{name:"F-16I SUFA",iaf:"Sufa (Storm)",gen:"4.5",spd:"Mach 2.0",ceil:"50,000 ft",range:"~400 nmi",pay:"17,750 lb",eng:"1x F100-PW-229",st:"None",yr:"2003",fleet:"~100",cost:"$70M",role:"Multirole strike",img:"F16",radar:[80,82,72,18,82,78]},
+  f16cd:{name:"F-16C/D BARAK",iaf:"Barak (Lightning)",gen:"4",spd:"Mach 2.0",ceil:"50,000 ft",range:"~340 nmi",pay:"12,000 lb",eng:"1x F100-PW-220",st:"None",yr:"1980",fleet:"~75",cost:"$25M",role:"Multirole",img:"F16",radar:[78,62,55,15,80,55]},
+  f15i:{name:"F-15I RA'AM",iaf:"Ra'am (Thunder)",gen:"4.5",spd:"Mach 2.5",ceil:"60,000 ft",range:"~1,000 nmi",pay:"23,000 lb",eng:"2x F100-PW-229",st:"None",yr:"1998",fleet:"25",cost:"$100M",role:"Long-range strike",img:"F15",radar:[92,95,85,18,80,82]},
+  f15c:{name:"F-15C BAZ",iaf:"Baz (Hawk)",gen:"4",spd:"Mach 2.5",ceil:"65,000 ft",range:"~1,061 nmi",pay:"AAM only",eng:"2x F100-PW-220",st:"None",yr:"1976",fleet:"~18",cost:"$28M",role:"Air superiority only",img:"F15",radar:[94,55,78,12,88,65]},
+  f15d:{name:"F-15D BAZ",iaf:"Baz two-seat",gen:"4",spd:"Mach 2.5",ceil:"65,000 ft",range:"~900 nmi",pay:"16,000 lb",eng:"2x F100-PW-220",st:"None",yr:"1976",fleet:"~10",cost:"$28M",role:"Trainer / limited strike",img:"F15",radar:[90,50,72,12,86,60]},
+};
+var IMGMAP2={F35:IMG_F35,F16:IMG_F16,F15:IMG_F15};
+
+var BOMBS_INFO=[
+  {name:"GBU-38",full:"GBU-38 JDAM",sub:"Mk 82 + JDAM",wt:"500 lb",tnt:"89 lb",guid:"GPS/INS",cep:"~5m",pen:"Soft-hardened",area:"0.85 km²",note:"Most common IAF PGM. GPS tail kit converts dumb Mk 82 to 5m accuracy.",svgKey:"mk82+jdam"},
+  {name:"GBU-31",full:"GBU-31 JDAM",sub:"Mk 84 + JDAM",wt:"2,000 lb",tnt:"945 lb",guid:"GPS/INS",cep:"~5m",pen:"Reinforced concrete",area:"2.60 km²",note:"Heavy JDAM. F-35I carries 2 internally. Primary F-15I strike weapon.",svgKey:"mk84+jdam"},
+  {name:"GBU-12",full:"GBU-12 Paveway II",sub:"Mk 82 + laser seeker",wt:"500 lb",tnt:"89 lb",guid:"Laser",cep:"~3m",pen:"Soft-medium",area:"0.85 km²",note:"Requires Litening pod designation. Very common IAF weapon since 1982.",svgKey:"mk82+pave2"},
+  {name:"GBU-28",full:"GBU-28 Bunker Buster",sub:"5,000 lb penetrator",wt:"4,400 lb",tnt:"630 lb",guid:"Laser",cep:"~1m",pen:"100ft soil / 20ft concrete",area:"13.85 km²",note:"F-15I Ra'am ONLY. Penetrates 100ft before detonating.",svgKey:"gbu28+none"},
+  {name:"Spice 250",full:"Spice 250",sub:"Israeli 250 lb EO/GPS glide",wt:"250 lb",tnt:"75 lb",guid:"EO+GPS AI",cep:"<1m",pen:"Light-medium",area:"0.23 km²",note:"AI scene-matching - immune to GPS jamming. 110km standoff range.",svgKey:"spice250+none"},
+  {name:"Spice 2000",full:"Spice 2000",sub:"Mk 84 + Spice EO/GPS kit",wt:"2,000 lb",tnt:"945 lb",guid:"EO+GPS AI",cep:"<1m",pen:"Hardened",area:"2.60 km²",note:"Primary IAF deep strike weapon. ~100km glide range.",svgKey:"mk84+spice2000"},
+  {name:"GBU-39 SDB",full:"GBU-39 SDB",sub:"285 lb GPS glide",wt:"285 lb",tnt:"50 lb",guid:"GPS/INS",cep:"~5m",pen:"1.8m concrete",area:"0.23 km²",note:"4x fit internal F-35I. 110km glide range. Low collateral damage.",svgKey:"gbu39+none"},
+  {name:"GBU-31(v)3",full:"GBU-31(v)3",sub:"BLU-109 penetrator + JDAM",wt:"2,000 lb",tnt:"530 lb",guid:"GPS/INS",cep:"~5m",pen:"Hardened bunkers",area:"1.91 km²",note:"Thick steel penetrator body. Detonates after penetrating.",svgKey:"blu109+jdam"},
+];
+
+var TECH_DATA={
+  f35i:{radar:"AN/APG-81 AESA",radarNote:"Israeli EW mods added",ew:"Elta SPS-3000 (Israeli)",ewNote:"Unique to IAF",sensors:"EOTS internal + DAS 360deg",sensNote:"No pod needed",hmd:"HMDS Gen III full-color",hmdNote:"No HUD needed",comm:"MIDS-JTRS + Israeli IFF",avionics:"ICP + Israeli software",weapons:"GBU-31/38 internal, Spice 250, SDB",notable:["First F-35 combat use (IAF 2018)","Classified Israeli EW suite","AI targeting integration"]},
+  f16i:{radar:"AN/APG-68(V)9",radarNote:"Mechanically scanned",ew:"Elisra SPS-3000",ewNote:"Israeli EW",sensors:"Litening AT pod",sensNote:"Laser+FLIR",hmd:"DASH III",hmdNote:"Israeli HMD",comm:"Have Quick + Israeli comms",avionics:"Conformal fuel tanks (+600nmi)",weapons:"Spice 250/2000, Popeye 80km, GBU-10/12/31",notable:["Popeye standoff missile","CFTs for Iran-range strikes","Israeli datalink"]},
+  f16cd:{radar:"AN/APG-68(V)1",radarNote:"Earlier variant",ew:"AN/ALQ-131 + Israeli",ewNote:"Aging EW",sensors:"Litening II (some)",sensNote:"Not all aircraft",hmd:"JHMCS (some)",hmdNote:"",comm:"Standard + Israeli IFF",avionics:"Block 30/40",weapons:"JDAM, Paveway, Python 4/5",notable:["Being phased out for F-35I","Still flies most strike sorties"]},
+  f15i:{radar:"AN/APG-70 upgraded",radarNote:"Very long range",ew:"Elisra SPS-2110",ewNote:"Full-spectrum",sensors:"LANTIRN nav+targeting",sensNote:"Two separate pods",hmd:"JHMCS",hmdNote:"",comm:"Israeli datalinks",avionics:"2-seat WSO + CFTs",weapons:"GBU-28 exclusive, Spice 2000, Popeye, full JDAM",notable:["Only IAF GBU-28 carrier","1000+ nmi range strikes","2-crew for long missions"]},
+  f15c:{radar:"AN/APG-63 upgraded",radarNote:"Air-to-air radar",ew:"AN/ALQ-135",ewNote:"A2A focus",sensors:"None",sensNote:"Air superiority only",hmd:"JHMCS some",hmdNote:"",comm:"Standard + IFF",avionics:"Single seat A2A",weapons:"AIM-120D, AIM-9X, Python 5, 20mm",notable:["Undefeated in A2A combat (IAF)","Escorting strike packages"]},
+};
+var SYS_CMP=[
+  {s:"Radar",f35i:"APG-81 AESA",f16i:"APG-68(V)9",f16cd:"APG-68(V)1",f15i:"APG-70",f15c:"APG-63"},
+  {s:"EW",f35i:"Elta SPS-3000 (Isr)",f16i:"Elisra SPS-3000",f16cd:"ALQ-131",f15i:"Elisra SPS-2110",f15c:"ALQ-135"},
+  {s:"HMD",f35i:"HMDS Gen III",f16i:"DASH III",f16cd:"JHMCS (some)",f15i:"JHMCS",f15c:"JHMCS (some)"},
+  {s:"Targeting",f35i:"EOTS internal",f16i:"Litening AT pod",f16cd:"Litening II (some)",f15i:"LANTIRN pods",f15c:"None"},
+  {s:"Stealth",f35i:"LO 5th gen",f16i:"None",f16cd:"None",f15i:"None",f15c:"None"},
+  {s:"Strike range",f35i:"~690 nmi",f16i:"~400+ nmi",f16cd:"~340 nmi",f15i:"~1,000 nmi",f15c:"A2A only"},
+  {s:"Crew",f35i:"1",f16i:"2",f16cd:"1 or 2",f15i:"2",f15c:"1"},
+];
+var MATRIX_W=["Mk 82","Mk 83","Mk 84","BLU-109","GBU-28","Spice 250","GBU-39"];
+var MATRIX_K=["None","JDAM","JDAM-ER","Paveway II","Paveway III","Spice 2000"];
+var MATRIX_R=[
+  ["Mk 82 Slick","GBU-38","GBU-38 ER","GBU-12","GBU-54","—"],
+  ["Mk 83 Slick","GBU-32","—","GBU-16","—","—"],
+  ["Mk 84 Slick","GBU-31","GBU-31 ER","GBU-10","GBU-24","Spice 2000"],
+  ["BLU-109","GBU-31(v)3","—","—","GBU-27","—"],
+  ["GBU-28 standalone","—","—","—","—","—"],
+  ["Spice 250 standalone","—","—","—","—","—"],
+  ["GBU-39 standalone","—","—","—","—","—"],
+];
+
+// ── BUDGET SIMULATOR DATA ──────────────────────────────────────────────────
+var BUDGET = 7000000000;
+var remaining = BUDGET;
+var cart = {};
+
+var SHOP_ITEMS = {
+  aircraft:[
+    {id:"f35i_a",name:"F-35I Adir",price:110000000,emoji:null,img:"F35",desc:"5th gen stealth multirole"},
+    {id:"f16i_a",name:"F-16I Sufa",price:70000000,emoji:null,img:"F16",desc:"Advanced multirole strike"},
+    {id:"f16cd_a",name:"F-16C/D Barak",price:25000000,emoji:null,img:"F16",desc:"Multirole fighter"},
+    {id:"f15i_a",name:"F-15I Ra'am",price:100000000,emoji:null,img:"F15",desc:"Long-range strike"},
+    {id:"f15c_a",name:"F-15C Baz",price:28000000,emoji:null,img:"F15",desc:"Air superiority"},
+  ],
+  munitions:[
+    {id:"mk82",name:"Mk 82 Slick",price:2000,emoji:"💣",desc:"500 lb dumb bomb"},
+    {id:"gbu38",name:"GBU-38 JDAM",price:27000,emoji:null,svgKey:"mk82+jdam",desc:"GPS guided, 500 lb"},
+    {id:"gbu31",name:"GBU-31 JDAM",price:30000,emoji:null,svgKey:"mk84+jdam",desc:"GPS guided, 2,000 lb"},
+    {id:"gbu12",name:"GBU-12 PW-II",price:22000,emoji:null,svgKey:"mk82+pave2",desc:"Laser guided, 500 lb"},
+    {id:"gbu28",name:"GBU-28 Bunker",price:145000,emoji:null,svgKey:"gbu28+none",desc:"5,000 lb penetrator"},
+    {id:"spice250",name:"Spice 250",price:200000,emoji:null,svgKey:"spice250+none",desc:"Israeli AI glide bomb"},
+    {id:"spice2000",name:"Spice 2000",price:250000,emoji:null,svgKey:"mk84+spice2000",desc:"2,000 lb EO/GPS"},
+    {id:"gbu39",name:"GBU-39 SDB",price:40000,emoji:null,svgKey:"gbu39+none",desc:"Small diameter bomb"},
+  ],
+  defense:[
+    {id:"irondome_int",name:"Iron Dome Interceptor",price:50000,emoji:"🛡️",desc:"Tamir missile"},
+    {id:"irondome_bat",name:"Iron Dome Battery",price:100000000,emoji:"📡",desc:"Full radar + 3 launchers"},
+    {id:"arrow3_int",name:"Arrow 3 Interceptor",price:3000000,emoji:"🚀",desc:"Exo-atmospheric missile"},
+    {id:"davids_int",name:"David's Sling Interceptor",price:1000000,emoji:"🎯",desc:"Medium-range intercept"},
+    {id:"patriot_int",name:"Patriot PAC-3 Interceptor",price:4000000,emoji:"🔰",desc:"US-supplied PAC-3"},
+  ],
+  vehicles:[
+    {id:"merkava",name:"Merkava IV Tank",price:6000000,emoji:"🛡️",desc:"Main battle tank"},
+    {id:"apache",name:"AH-64 Apache",price:36000000,emoji:"🚁",desc:"Attack helicopter"},
+    {id:"c130j",name:"C-130J Hercules",price:75000000,emoji:"✈️",desc:"Tactical transport"},
+    {id:"g550",name:"Gulfstream G550 AEW",price:80000000,emoji:"📡",desc:"Airborne early warning"},
+    {id:"saar6",name:"Sa'ar 6 Corvette",price:500000000,emoji:"🚢",desc:"Naval missile corvette"},
+  ],
+  civilian:[
+    {id:"house",name:"Average US Home",price:420000,emoji:"🏠",desc:"Median US home price"},
+    {id:"school",name:"Public School (1yr)",price:12000000,emoji:"🏫",desc:"Annual budget, 500 students"},
+    {id:"hospital",name:"Children's Hospital",price:100000000,emoji:"🏥",desc:"Full build and equip"},
+    {id:"teacher",name:"Teacher Salary (1yr)",price:60000,emoji:"👩‍🏫",desc:"Average US teacher"},
+    {id:"firefighter",name:"Firefighter (1yr)",price:55000,emoji:"🚒",desc:"Average US salary"},
+    {id:"ambulance",name:"Ambulance",price:200000,emoji:"🚑",desc:"Fully equipped"},
+    {id:"scholarship",name:"4-yr Scholarship",price:100000,emoji:"🎓",desc:"Full tuition at public uni"},
+    {id:"foodbank",name:"Food Bank (1yr)",price:2500000,emoji:"🍎",desc:"Feeds 40,000 families/year"},
+    {id:"mealchild",name:"School Meals (1yr)",price:1000,emoji:"🥗",desc:"1 child, free lunch 1 year"},
+    {id:"fbi",name:"FBI Annual Budget",price:10900000000,emoji:"🔍",desc:"Entire FBI for 1 year"},
+    {id:"nasa",name:"NASA Annual Budget",price:25400000000,emoji:"🚀",desc:"Entire NASA for 1 year"},
+  ],
+};
+
+function fmtM(n){
+  if(n>=1e12)return"$"+(n/1e12).toFixed(2)+"T";
+  if(n>=1e9)return"$"+(n/1e9).toFixed(2)+"B";
+  if(n>=1e6)return"$"+(n/1e6).toFixed(1)+"M";
+  if(n>=1e3)return"$"+(n/1e3).toFixed(0)+"K";
+  return"$"+n.toLocaleString();
+}
+
+function buyItem(id,price){
+  if(remaining<price)return;
+  cart[id]=(cart[id]||0)+1;
+  remaining-=price;
+  refreshBudget();
+  // Animate balance
+  var b=document.getElementById("bal");
+  if(b){b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump");setTimeout(function(){b.classList.remove("bump");},200);}
+  updateCard(id);
+  refreshReceipt();
+}
+function sellItem(id,price){
+  if(!cart[id]||cart[id]<=0)return;
+  cart[id]--;
+  if(cart[id]===0)delete cart[id];
+  remaining+=price;
+  refreshBudget();
+  updateCard(id);
+  refreshReceipt();
+}
+function resetBudget(){
+  cart={};remaining=BUDGET;
+  refreshBudget();
+  refreshReceipt();
+  // Re-render all cards
+  Object.keys(SHOP_ITEMS).forEach(function(cat){renderCategory(cat);});
+}
+
+function refreshBudget(){
+  var pct=remaining/BUDGET;
+  var b=document.getElementById("bal");
+  if(b){
+    b.textContent=fmtM(remaining);
+    b.className="bal-amount"+(pct<0.05?" broke":pct<0.2?" low":"");
+  }
+  var bar=document.getElementById("bal-bar");
+  if(bar){bar.style.width=(pct*100).toFixed(1)+"%";bar.className="bal-bar"+(pct<0.2?" low":"");}
+  var meta=document.getElementById("bal-meta");
+  if(meta) meta.textContent=fmtM(BUDGET-remaining)+" spent  ·  "+fmtM(remaining)+" remaining";
+}
+
+function updateCard(id){
+  var qty=cart[id]||0;
+  var el=document.getElementById("qty-"+id);
+  if(el) el.textContent=qty;
+  var card=document.getElementById("card-"+id);
+  if(card){
+    card.classList.toggle("owned",qty>0);
+    // Find this item's price
+    var price=0;
+    Object.values(SHOP_ITEMS).forEach(function(arr){arr.forEach(function(it){if(it.id===id)price=it.price;});});
+    card.classList.toggle("broke",remaining<price&&qty===0);
+  }
+  // Refresh all card broke states
+  Object.values(SHOP_ITEMS).forEach(function(arr){
+    arr.forEach(function(it){
+      var c=document.getElementById("card-"+it.id);
+      if(c&&!(cart[it.id]>0)) c.classList.toggle("broke",remaining<it.price);
+    });
+  });
+}
+
+function makeItemCard(item){
+  var qty=cart[item.id]||0;
+  var cantAfford=remaining<item.price&&qty===0;
+  var imgHTML="";
+  if(item.img){
+    var src=item.img==="F35"?IMG_F35:item.img==="F16"?IMG_F16:IMG_F15;
+    imgHTML="<div class='item-img-wrap'><img src='"+src+"' alt='"+item.name+"'></div>";
+  } else if(item.svgKey&&typeof BSVG!=="undefined"&&BSVG[item.svgKey]){
+    imgHTML="<div class='item-img-wrap'>"+BSVG[item.svgKey]+"</div>";
+  } else if(item.emoji){
+    imgHTML="<span class='item-emoji'>"+item.emoji+"</span>";
+  }
+  return "<div class='item-card"+(cantAfford?" broke":"")+(qty>0?" owned":"")+"' id='card-"+item.id+"'>"+
+    imgHTML+
+    "<div class='item-name'>"+item.name+"</div>"+
+    "<div class='item-price'>"+fmtM(item.price)+"</div>"+
+    "<div style='font-size:9px;color:var(--dim);line-height:1.3;min-height:24px'>"+item.desc+"</div>"+
+    "<div class='item-controls'>"+
+      "<button class='ic-btn minus' onclick='sellItem(""+item.id+"","+item.price+")'>−</button>"+
+      "<span class='ic-qty' id='qty-"+item.id+"'>"+qty+"</span>"+
+      "<button class='ic-btn plus' onclick='buyItem(""+item.id+"","+item.price+")'>+</button>"+
+    "</div>"+
+  "</div>";
+}
+
+function renderCategory(cat){
+  var el=document.getElementById("cat-"+cat);
+  if(!el)return;
+  el.innerHTML=SHOP_ITEMS[cat].map(makeItemCard).join("");
+}
+
+function refreshReceipt(){
+  var body=document.getElementById("receipt-body");
+  var tot=document.getElementById("receipt-total");
+  var totVal=document.getElementById("receipt-total-val");
+  var comps=document.getElementById("comparisons");
+  var compLines=document.getElementById("comp-lines");
+  if(!body)return;
+  var all=[];
+  Object.values(SHOP_ITEMS).forEach(function(arr){all=all.concat(arr);});
+  var bought=all.filter(function(i){return cart[i.id]>0;});
+  if(bought.length===0){
+    body.innerHTML="<div class='receipt-empty'>Nothing purchased yet — add items above</div>";
+    if(tot) tot.style.display="none";
+    if(comps) comps.style.display="none";
+    return;
+  }
+  var spent=BUDGET-remaining;
+  body.innerHTML=bought.map(function(item){
+    return "<div class='rline'><span class='rname'>"+item.name+"</span><span class='rqty'>×"+cart[item.id]+"</span><span class='rtotal'>"+fmtM(cart[item.id]*item.price)+"</span></div>";
+  }).join("");
+  if(tot) tot.style.display="flex";
+  if(totVal) totVal.textContent=fmtM(spent);
+  if(comps&&compLines&&spent>0){
+    var COMP_ITEMS=[
+      {p:50000,l:"year of free school meals per child"},
+      {p:60000,l:"US teacher salaries for a year"},
+      {p:420000,l:"average US homes"},
+      {p:100000,l:"4-year university scholarships"},
+      {p:200000,l:"fully equipped ambulances"},
+      {p:1000000,l:"David's Sling interceptor missiles"},
+      {p:2500000,l:"food banks feeding 40,000 families/yr"},
+      {p:10000000,l:"fully equipped fire stations"},
+      {p:100000000,l:"children's hospitals built and equipped"},
+    ];
+    var lines=COMP_ITEMS.filter(function(c){return spent>=c.p;})
+      .map(function(c){return"<div class='comp-line'><span>"+Math.floor(spent/c.p).toLocaleString()+"×</span> "+c.l+"</div>";});
+    compLines.innerHTML=lines.slice(-5).join("");
+    comps.style.display="";
+  }
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+document.querySelectorAll(".tb").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    document.querySelectorAll(".tb").forEach(function(b){b.classList.remove("active");});
+    document.querySelectorAll(".tp").forEach(function(p){p.classList.remove("active");});
+    btn.classList.add("active");
+    document.getElementById("tab-"+btn.dataset.tab).classList.add("active");
+    if(btn.dataset.tab==="budget"){
+      setTimeout(function(){
+        Object.keys(SHOP_ITEMS).forEach(function(cat){renderCategory(cat);});
+        refreshBudget(); refreshReceipt();
+      },30);
+    }
+  });
+});
+
+// ── AIRCRAFT COMPARE ────────────────────────────────────────────────────
+function setCard(side,k){
+  var j=JETS_INFO[k];if(!j)return;
+  document.getElementById("c"+side+"-name").textContent=j.name;
+  document.getElementById("c"+side+"-sub").textContent=j.iaf;
+  ["spd","ceil","range","pay","eng","st","yr","fleet","cost","role"].forEach(function(f){
+    var el=document.getElementById("c"+side+"-"+f);if(el)el.textContent=j[f]||"—";
+  });
+  var ib=document.getElementById("img-"+side);
+  if(ib)ib.innerHTML="<img src='"+IMGMAP2[j.img]+"' style='max-width:90%;max-height:110px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(0,204,255,.3))'>";
+}
+function drawRadar(rA,rB){
+  var cv=document.getElementById("radar");if(!cv)return;
+  var c=cv.getContext("2d");c.clearRect(0,0,174,174);
+  var cx=87,cy=87,R=66,N=6;
+  var axes=["Speed","Payload","Range","Stealth","Maneuver","Avionics"];
+  for(var t=0.25;t<=1;t+=0.25){
+    c.strokeStyle="rgba(0,255,136,"+(0.04+t*0.07)+")";c.lineWidth=.5;c.beginPath();
+    for(var i=0;i<N;i++){var a=(i/N)*Math.PI*2-Math.PI/2;var px=cx+Math.cos(a)*R*t,py=cy+Math.sin(a)*R*t;i===0?c.moveTo(px,py):c.lineTo(px,py);}
+    c.closePath();c.stroke();
+  }
+  axes.forEach(function(l,i){
+    var a=(i/N)*Math.PI*2-Math.PI/2;
+    c.strokeStyle="rgba(0,255,136,.18)";c.lineWidth=.5;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R);c.stroke();
+    c.fillStyle="rgba(74,98,114,.9)";c.font="7px Barlow Condensed,sans-serif";c.textAlign="center";c.textBaseline="middle";
+    c.fillText(l,cx+Math.cos(a)*(R+11),cy+Math.sin(a)*(R+11));
+  });
+  [[rA,"rgba(0,255,136,.5)","rgba(0,255,136,.1)"],[rB,"rgba(255,68,34,.5)","rgba(255,68,34,.08)"]].forEach(function(arr){
+    var r=arr[0],st=arr[1],fi=arr[2];
+    c.beginPath();r.forEach(function(v,i){var a=(i/N)*Math.PI*2-Math.PI/2,rd=(v/100)*R;var px=cx+Math.cos(a)*rd,py=cy+Math.sin(a)*rd;i===0?c.moveTo(px,py):c.lineTo(px,py);});
+    c.closePath();c.fillStyle=fi;c.fill();c.strokeStyle=st;c.lineWidth=1.5;c.stroke();
+    r.forEach(function(v,i){var a=(i/N)*Math.PI*2-Math.PI/2,rd=(v/100)*R;c.fillStyle=st;c.beginPath();c.arc(cx+Math.cos(a)*rd,cy+Math.sin(a)*rd,2.5,0,Math.PI*2);c.fill();});
+  });
+}
+function updateCmp(){
+  var ka=document.getElementById("sel-a").value,kb=document.getElementById("sel-b").value;
+  setCard("a",ka);setCard("b",kb);
+  drawRadar(JETS_INFO[ka].radar,JETS_INFO[kb].radar);
+}
+
+// ── JET TABLE ─────────────────────────────────────────────────────────────
+function buildJetTable(){
+  var tb=document.getElementById("jet-tbody");if(!tb)return;
+  Object.values(JETS_INFO).forEach(function(j){
+    var gc=j.gen==="5"?"g5":j.gen==="4.5"?"g45":"g4";
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td style='font-weight:700'>"+j.name+"</td><td class='dim'>"+j.iaf+"</td><td><span class='gbadge "+gc+"'>"+j.gen+" GEN</span></td><td class='dim'>"+j.role+"</td><td class='mono'>"+j.spd+"</td><td class='mono'>"+j.ceil+"</td><td class='mono'>"+j.range+"</td><td class='warn'>"+j.pay+"</td><td class='dim'>"+j.eng+"</td><td class='dim'>"+j.st+"</td><td class='mono'>"+j.yr+"</td><td class='mono'>"+j.fleet+"</td><td class='mono' style='color:var(--amb)'>"+j.cost+"</td>";
+    tb.appendChild(tr);
+  });
+}
+
+// ── BOMB GRID ─────────────────────────────────────────────────────────────
+function buildBombGrid(){
+  var grid=document.getElementById("bomb-grid");if(!grid)return;
+  BOMBS_INFO.forEach(function(b){
+    var div=document.createElement("div");div.className="bcard";
+    var svg=getBSVG(b.svgKey);
+    div.innerHTML="<div class='bname'>"+b.full+"</div><div class='bsub'>"+b.sub+"</div>"+
+      "<div class='bcv' style='min-height:64px'>"+svg+"</div>"+
+      "<div class='bsp'><div class='bsr'><span class='bk'>Weight</span><span class='bv'>"+b.wt+"</span></div>"+
+      "<div class='bsr'><span class='bk'>Explosive</span><span class='bv' style='color:var(--warn)'>"+b.tnt+"</span></div>"+
+      "<div class='bsr'><span class='bk'>Guidance</span><span class='bv' style='color:var(--amb)'>"+b.guid+"</span></div>"+
+      "<div class='bsr'><span class='bk'>CEP</span><span class='bv' style='color:var(--hud)'>"+b.cep+"</span></div>"+
+      "<div class='bsr'><span class='bk'>Area affected</span><span class='bv' style='color:var(--warn)'>"+b.area+"</span></div></div>"+
+      "<div style='font-size:9px;color:var(--dim);line-height:1.5;border-top:.5px solid rgba(255,255,255,.04);padding-top:5px'>"+b.note+"</div>";
+    grid.appendChild(div);
+  });
+}
+
+// ── MATRIX ────────────────────────────────────────────────────────────────
+function buildMatrix(){
+  var t=document.getElementById("matrix-table");if(!t)return;
+  var h="<thead><tr><th style='text-align:left;background:rgba(0,0,0,.3)'>WARHEAD / KIT</th>";
+  MATRIX_K.forEach(function(k){h+="<th>"+k+"</th>";});
+  h+="</tr></thead><tbody>";
+  MATRIX_W.forEach(function(w,wi){
+    h+="<tr><th>"+w+"</th>";
+    MATRIX_R[wi].forEach(function(r){
+      h+=r==="—"?"<td style='color:rgba(255,255,255,.12)'>✗</td>":"<td style='color:var(--hud2);font-size:9px;font-family:Share Tech Mono,monospace;white-space:nowrap'>"+r+"</td>";
+    });
+    h+="</tr>";
+  });
+  t.innerHTML=h+"</tbody>";
+}
+
+// ── TECH ─────────────────────────────────────────────────────────────────
+function buildTech(){
+  var grid=document.getElementById("tech-grid");if(!grid)return;
+  Object.entries(TECH_DATA).forEach(function(e){
+    var k=e[0],d=e[1],j=JETS_INFO[k];if(!j)return;
+    var div=document.createElement("div");div.className="techcard";
+    div.innerHTML="<div class='tchead'><img class='tcimg' src='"+IMGMAP2[j.img]+"' alt=''><div><div class='tcname'>"+j.name+"</div><div class='tcsub'>"+j.iaf+"</div></div></div>"+
+      "<div class='sg'><div class='sgt'>Radar & Sensors</div><div class='si'><span class='sik'>Radar</span><span class='siv h'>"+d.radar+"</span></div><div class='si'><span class='sik'></span><span class='siv'>"+d.radarNote+"</span></div><div class='si'><span class='sik'>EW</span><span class='siv h'>"+d.ew+"</span></div><div class='si'><span class='sik'>Targeting</span><span class='siv'>"+d.sensors+"</span></div></div>"+
+      "<div class='sg'><div class='sgt'>Avionics</div><div class='si'><span class='sik'>HMD</span><span class='siv'>"+d.hmd+"</span></div><div class='si'><span class='sik'>Comms</span><span class='siv'>"+d.comm+"</span></div><div class='si'><span class='sik'>Systems</span><span class='siv'>"+d.avionics+"</span></div></div>"+
+      "<div class='sg'><div class='sgt'>Weapons & Notes</div><div class='si'><span class='sik'>Weapons</span><span class='siv h'>"+d.weapons+"</span></div>"+(d.notable||[]).map(function(n){return"<div class='si'><span class='sik'></span><span class='siv'>→ "+n+"</span></div>";}).join("")+"</div>";
+    grid.appendChild(div);
+  });
+}
+function buildSys(){
+  var tb=document.getElementById("sys-tbody");if(!tb)return;
+  SYS_CMP.forEach(function(r){
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td style='font-weight:700'>"+r.s+"</td><td class='dim'>"+r.f35i+"</td><td class='dim'>"+r.f16i+"</td><td class='dim'>"+r.f16cd+"</td><td class='dim'>"+r.f15i+"</td><td class='dim'>"+r.f15c+"</td>";
+    tb.appendChild(tr);
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener("load",function(){
+  buildJetTable(); buildMatrix(); buildBombGrid(); buildTech(); buildSys(); updateCmp();
+});
+
+// PST/PDT clock
+setInterval(function(){
+  try{
+    var t=new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date());
+    var tz=new Date().toLocaleString("en-US",{timeZone:"America/Los_Angeles",timeZoneName:"short"}).split(" ").pop();
+    document.getElementById("clock").textContent=t+" "+tz;
+  }catch(e){}
+},1000);
+
+</script></body></html>
